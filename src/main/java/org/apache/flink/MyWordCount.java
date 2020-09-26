@@ -8,7 +8,7 @@ public class MyWordCount {
     public MyWordCount() {
     }
 
-    private MyWordCount(int count, String word, int frequency) {
+    public MyWordCount(int count, String word, int frequency) {
         this.count = count;
         this.word = word;
         this.frequency = frequency;
