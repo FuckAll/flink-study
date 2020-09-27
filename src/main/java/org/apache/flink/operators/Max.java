@@ -20,7 +20,6 @@ package org.apache.flink.operators;
 
 import org.apache.flink.bean.MyWordCount;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -36,42 +35,35 @@ import org.apache.flink.streaming.api.functions.sink.SinkFunction;
  */
 public class Max {
     private static MyWordCount[] data = new MyWordCount[]{
-            new MyWordCount(1,"Hello", 1),
-            new MyWordCount(2,"Hello", 2),
-            new MyWordCount(3,"Hello", 3),
-            new MyWordCount(1,"World", 3)
+            new MyWordCount(1, "Hello", 1),
+            new MyWordCount(2, "Hello", 2),
+            new MyWordCount(3, "Hello", 1),
+            new MyWordCount(1, "World", 1)
     };
 
-    // 结论：如果是max，如果value1比value2大，返回value1；
-    //      否则，将value2中用来作对比的field的值替换value1中该field的值，并返回value1。
+    // 结论：如果是max，current >= pre,current中用来作对比的field的值替换pre中field的值，并且返回pre, 如果current < pre, 直接返回pre;
+    //      (与maxBy不同，maxBy是返回最大值对应的element, 而max返回的是数据流中的第一个值，只管field的最大值)
+    // 注意：pre是之前的结果（之前的max结果）；MaxBy只能在KeyedStream上进行，并且MaxBy中在不同的KeyBy区域中单独进行计算。
     // 输出：
-    //    MyWordCount{count=1, word='Hello', frequency=1}
+    //      1> MyWordCount{count=1, word='Hello', frequency=1}
+    //      1> MyWordCount{count=1, word='Hello', frequency=2}
+    //      1> MyWordCount{count=1, word='Hello', frequency=2}
+    //      1> MyWordCount{count=1, word='World', frequency=1}
     //
-    //
-    //    MyWordCount{count=1, word='Hello', frequency=2}
-    //
-    //
-    //    MyWordCount{count=1, word='World', frequency=3}
-    //
-    //
-    //    MyWordCount{count=1, word='Hello', frequency=3}
     // 解释：1. 按照keyBy将 word = "Hello" 和 word = "Word" 放入两个slot执行
     //      2. 例如 word = "Hello"，
-    //                 第一步：{count=1, word='Hello', frequency=1} 此时frequency=1是最大的。返回{count=1, word='Hello', frequency=1}
-    //                 第二步: {count=2, word='Hello', frequency=2} 此时frequency=2大于上一条，将frequency=2与上一条中frequency交换，不换其他的。返回：{count=1, word='Hello', frequency=2}
-    //                 第三步: {count=3, word='Hello', frequency=3} 此时frequency=2大于上一条，将frequency=3与上一条中frequency交换，不换其他的。返回：{count=1, word='Hello', frequency=3}
-    //       3. 同理 word = "World" ...
+    //                 第一步：{count=1, word='Hello', frequency=1} 此时frequency=1是最大的，结果：{count=1, word='Hello', frequency=1}
+    //                 第二步: {count=2, word='Hello', frequency=2} 此时frequency=2大于上一次结果，将frequency=2与上一条中frequency交换，不换其他的,结果：{count=1, word='Hello', frequency=2}
+    //                 第三步: {count=3, word='Hello', frequency=1} 此时frequency=2小于一次结果，将frequency=3与上一条中frequency交换，不换其他的。返回：{count=1, word='Hello', frequency=3}
+    //       3. 同理 word = "World"
+    //                 work = "World" 与 work = "Hello" 在不同的keyBy区域中，单独进行计算
+
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.fromElements(data)
                 .keyBy("word")
                 .max("frequency")
-                .addSink(new SinkFunction<MyWordCount>() {
-                    @Override
-                    public void invoke(MyWordCount value, Context context) {
-                        System.err.println("\n" + value + "\n");
-                    }
-                });
-        env.execute("testMax");
+                .print();
+        env.execute();
     }
 }
