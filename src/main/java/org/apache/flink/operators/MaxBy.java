@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.flink;
+package org.apache.flink.operators;
 
+import org.apache.flink.MyWordCount;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 

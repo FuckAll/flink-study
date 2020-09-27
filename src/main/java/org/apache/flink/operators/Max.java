@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.flink;
+package org.apache.flink.operators;
 
+import org.apache.flink.MyWordCount;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
