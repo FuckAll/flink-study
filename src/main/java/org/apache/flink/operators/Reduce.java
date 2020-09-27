@@ -29,7 +29,6 @@ public class Reduce {
     //      4. word = "Four" 进入， 由于count=4, 与之前的三条keyBy区域都不同，输出本身MyWordCount{count=4, word='Four', frequency=4}
 
     // 注意：Reduce只能在KeyedStream上进行，并且Reduce中在不同的KeyBy区域中单独进行计算。
-    // 参考：https://medium.com/big-data-processing/apache-flink-specifying-keys-81b3b651469
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
