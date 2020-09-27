@@ -18,7 +18,7 @@
 
 package org.apache.flink.operators;
 
-import org.apache.flink.MyWordCount;
+import org.apache.flink.bean.MyWordCount;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
