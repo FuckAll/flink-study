@@ -43,7 +43,7 @@ public class MaxBy {
     };
 
     // 结论：如果是maxBy，current >= pre 返回第一个current,否则返回pre；
-    // (与Max不同，Max只交换比较大小的内容，然后返回原elements)
+    // (与Max不同，Max只交换比较大小的内容，然后返回原element，max只操心field的最大值，maxBy操心field最大值的element)
     //
     // 输出：
     //    MyWordCount{count=1, word='Hello', frequency=1}
