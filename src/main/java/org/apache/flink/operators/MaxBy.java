@@ -36,13 +36,14 @@ import org.apache.flink.streaming.api.functions.sink.SinkFunction;
  */
 public class MaxBy {
     private static MyWordCount[] data = new MyWordCount[]{
-            new MyWordCount(1,"Hello", 1),
-            new MyWordCount(2,"Hello", 2),
-            new MyWordCount(3,"Hello", 3),
-            new MyWordCount(1,"World", 3)
+            new MyWordCount(1, "Hello", 1),
+            new MyWordCount(2, "Hello", 2),
+            new MyWordCount(3, "Hello", 1),
+            new MyWordCount(1, "World", 1)
     };
 
-    // 结论：如果是maxBy，如果相等，first为true返回第一个value；first为false返回第二个value；(与Max不同，Max只交换比较大小的内容，然后返回原elements)
+    // 结论：如果是maxBy，current >= pre 返回第一个current,否则返回pre；
+    // (与Max不同，Max只交换比较大小的内容，然后返回原elements)
     //
     // 输出：
     //    MyWordCount{count=1, word='Hello', frequency=1}
@@ -51,16 +52,21 @@ public class MaxBy {
     //    MyWordCount{count=2, word='Hello', frequency=2}
     //
     //
-    //    MyWordCount{count=1, word='World', frequency=3}
+    //    MyWordCount{count=2, word='Hello', frequency=2}
     //
     //
-    //    MyWordCount{count=3, word='Hello', frequency=3}
-    // 解释：1. 按照keyBy将 word = "Hello" 和 word = "Word" 放入两个slot执行
+    //    MyWordCount{count=1, word='World', frequency=1}
+    //
+    // 解释：1. 按照keyBy将 word = "Hello" 和 word = "Word" 放入两个slot执行(分区)
     //      2. 例如 word = "Hello"，
     //                 第一步：{count=1, word='Hello', frequency=1} 此时frequency=1是最大的。返回{count=1, word='Hello', frequency=1}
     //                 第二步: {count=2, word='Hello', frequency=2} 此时frequency=2大于上一条，返回：{count=2, word='Hello', frequency=2}
-    //                 第三步: {count=3, word='Hello', frequency=3} 此时frequency=3大于上一条，返回：{count=3, word='Hello', frequency=3}
-    //       3. 同理 word = "World" ...
+    //                 第三步: {count=3, word='Hello', frequency=1} 此时frequency=1小于上一条，返回上一条：{count=2, word='Hello', frequency=2}
+    //      3. 同理 word = "World"
+    //                 由于与word = "Hello" 不用的keyBy分区
+    //                 第一步：{count=1, word='World', frequency=1} 此时frequency=1是最大的。返回{count=1, word='World', frequency=1}
+    // 注意：MaxBy只能在KeyedStream上进行，并且MaxBy中在不同的KeyBy区域中单独进行计算。
+
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.fromElements(data)
@@ -72,6 +78,6 @@ public class MaxBy {
                         System.err.println("\n" + value + "\n");
                     }
                 });
-        env.execute("testMax");
+        env.execute();
     }
 }
