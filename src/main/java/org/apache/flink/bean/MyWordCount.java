@@ -1,4 +1,4 @@
-package org.apache.flink;
+package org.apache.flink.bean;
 
 public class MyWordCount {
     private int count;

@@ -18,11 +18,9 @@
 
 package org.apache.flink.operators;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.bean.MyWordCount;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Collector;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -36,7 +34,7 @@ import org.apache.flink.util.Collector;
  * <p>If you change the name of the main class (with the public static void main(String[] args))
  * method, change the respective entry in the POM.xml file (simply search for 'mainClass').
  */
-public class FlatMap {
+public class Filter {
     private static MyWordCount[] data = new MyWordCount[]{
             new MyWordCount(1, "Hello", 1),
             new MyWordCount(2, "Hello", 2),
@@ -44,27 +42,21 @@ public class FlatMap {
             new MyWordCount(1, "World", 3)
     };
 
-    // 结论：FlatMap 算子的输入流是 DataStream，经过 FlatMap 算子后返回的数据格式是 SingleOutputStreamOperator 类型，获取一个元素并生成零个、一个或多个元素。
+    // 结论：Filter对每个元素都进行判断，返回为 true 的元素，如果为 false 则丢弃数据。
     // 输出：
-    //    flatMap operator:9> (3,Hello,3)
-    //    flatMap operator:8> (2,Hello,2)
-    //    flatMap operator:7> (1,Hello,1)
-    //    flatMap operator:10> (1,World,3)
-    //    flatMap operator:7> (1,Hello,1)
-    //    flatMap operator:8> (2,Hello,2)
-    //    flatMap operator:9> (3,Hello,3)
-    //    flatMap operator:10> (1,World,3)
-    // 解释：1. Map会处理每一个进入DataStream的element,并且将element进行目标类型转换
+    //      2> MyWordCount{count=1, word='Hello', frequency=1}
+    //      1> MyWordCount{count=1, word='World', frequency=3}
+    // 解释：
+    //      Filter 将返回true的保存，返回false的丢弃。
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.fromElements(data).flatMap(new FlatMapFunction<MyWordCount, Tuple3<Integer, String, Integer>>() {
+        env.fromElements(data).filter(new FilterFunction<MyWordCount>() {
             @Override
-            public void flatMap(MyWordCount value, Collector<Tuple3<Integer, String, Integer>> out) throws Exception {
-                out.collect(new Tuple3<>(value.getCount(), value.getWord(), value.getFrequency()));
-                out.collect(new Tuple3<>(value.getCount(), value.getWord(), value.getFrequency()));
+            public boolean filter(MyWordCount value) throws Exception {
+                return value.getCount() <= 1;
             }
-        }).print("flatMap operator");
+        }).print();
         env.execute();
     }
 }
