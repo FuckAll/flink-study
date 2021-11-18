@@ -18,9 +18,12 @@
 
 package org.apache.flink.operators;
 
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.bean.MyWordCount;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.types.Row;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -41,6 +44,7 @@ public class MaxBy {
             new MyWordCount(3, "Hello", 1),
             new MyWordCount(1, "World", 1)
     };
+    private static StreamTableEnvironment streamTableEnvironment;
 
     // 结论：如果是maxBy，current >= pre 返回第一个current,否则返回pre；
     // (与Max不同，Max只交换比较大小的内容，然后返回原element，max只操心field的最大值，maxBy操心field最大值的element)
@@ -69,15 +73,21 @@ public class MaxBy {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.fromElements(data)
-                .keyBy("word")
-                .maxBy("frequency")
-                .addSink(new SinkFunction<MyWordCount>() {
-                    @Override
-                    public void invoke(MyWordCount value, Context context) {
-                        System.err.println("\n" + value + "\n");
-                    }
-                });
+        streamTableEnvironment = StreamTableEnvironment.create(env);
+
+        Table tmpTable = streamTableEnvironment.fromDataStream(env.fromElements(data), "count,frequency,word,pc.proctime");
+        tmpTable.printSchema();
+        streamTableEnvironment.toAppendStream(tmpTable, Row.class).print();
+//        scala.util.parsing.combinator.Parsers
+//        env.fromElements(data)
+//                .keyBy("word")
+//                .maxBy("frequency")
+//                .addSink(new SinkFunction<MyWordCount>() {
+//                    @Override
+//                    public void invoke(MyWordCount value, Context context) {
+//                        System.err.println("\n" + value + "\n");
+//                    }
+//                });
         env.execute();
     }
 }

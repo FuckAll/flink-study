@@ -1,8 +1,11 @@
 package org.apache.flink.operators;
 
+import org.apache.flink.api.common.functions.IterationRuntimeContext;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.bean.MyWordCount;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.util.Collector;
 
 /**
  * @author: izgnod.
@@ -36,9 +39,24 @@ public class KeyedBy {
             public Integer getKey(MyWordCount value) throws Exception {
                 return value.getCount();
             }
-        }).print("keyByWork");
+        }).process(new MyKeyedProcessFunction()).print("keyByWork");
 
 //        env.fromElements(data).keyBy("word", "count").print("keyByWorkAndCount");
         env.execute();
     }
+
+}
+
+class MyKeyedProcessFunction extends KeyedProcessFunction<Integer,MyWordCount ,String > {
+
+    @Override
+    public void processElement(MyWordCount myWordCount, Context context, Collector<String> collector) throws Exception {
+
+    }
+
+    @Override
+    public void onTimer(long timestamp, OnTimerContext ctx, Collector<String> out) throws Exception {
+        super.onTimer(timestamp, ctx, out);
+    }
+
 }
